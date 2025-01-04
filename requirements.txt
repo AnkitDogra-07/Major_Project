@@ -1,61 +1,13 @@
-# SNMP Data Collection
-pysnmp
-pyasn1
-
-# Packet Capture and Analysis
-scapy
-pyshark
-
-# Log Management and Parsing
-fluent-logger
-python-json-logger
-
-# Data Processing
-pandas
 numpy
-
-# Database Interaction
-sqlalchemy
-psycopg2-binary  # For PostgreSQL
-elasticsearch    # For Elasticsearch
-influxdb-client  # For InfluxDB
-
-# Messaging and Streaming
-kafka-python     # For Kafka integration
-
-# Machine Learning and Anomaly Detection
-scikit-learn
-tensorflow
-torch
-xgboost
-
-# Visualization
+pandas
 matplotlib
 seaborn
-streamlit
-plotly
+opencv-python
+tensorflow
+torch
+torchvision
+torchaudio
+scikit-learn
+jupyter
+notebook
 
-# REST API Development
-flask
-fastapi
-uvicorn
-
-# Alerting and Notifications
-slack-sdk
-twilio
-
-# Scheduling
-apscheduler
-
-# Utility Libraries
-requests
-pyyaml
-click
-
-# Testing and Debugging
-pytest
-pytest-mock
-
-# Networking
-netifaces
-pyroute2
