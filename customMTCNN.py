@@ -31,3 +31,21 @@ class PNet(nn.module):
         
         # Landmark localization branch
         self.conv4_3 = nn.Conv2d(32, 10, kernel_size=1, stride=1)
+    
+    def forward(self, x):
+        x = self.prelu1(self.conv1(x))
+        x = self.pool1(x)
+        x = self.prelu2(self.conv2(x))
+        x = self.prelu3(self.conv3(x))
+
+        # Face classification
+        det = self.conv4_1(x)
+        det = self.softmax4_1(det)
+        
+        # Bounding box regression
+        box = self.conv4_2(x)
+        
+        # Facial landmark localization
+        landmark = self.conv4_3(x)
+        
+        return det, box, landmark
