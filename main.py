@@ -8,7 +8,6 @@ class FacialEmbeddingSystem:
     def __init__(self):
         # Initialize face detection model
         self.mtcnn = MTCNN(keep_all=True, device='cuda' if torch.cuda.is_available() else 'cpu')
-        
         # Initialize facial embedding model
         self.resnet = InceptionResnetV1(pretrained='vggface2').eval()
         if torch.cuda.is_available():
