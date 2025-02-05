@@ -49,3 +49,8 @@ class PNet(nn.module):
         landmark = self.conv4_3(x)
         
         return det, box, landmark
+
+class RNet(nn.module):
+    """Refinement Network (R-Net) - Second stage of MTCNN"""
+    def __init__(self):
+        super(RNet, self).__init__()
