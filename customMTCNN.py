@@ -125,3 +125,24 @@ class ONet(nn.module):
         self.prelu5 = nn.PReLU(256)
 
         # Detection
+        self.fc_1 = nn.Linear(256, 2)
+        self.softmax6_1 = nn.Softmax(dim=1)
+
+        # Bounding box regression
+        self.fc_2 = nn.Linear(256, 4)
+
+        # Landmark regression
+        self.fc_3 = nn.Linear(256, 10)
+
+    def forward(self, x):
+        x = self.prelu1(self.conv1(x))
+        x = self.pool1(x)
+        x = self.prelu2(self.conv2(x))
+        x = self.pool2(x)
+        x = self.prelu3(self.conv3(x))
+        x = self.pool13(x)
+        x = self.prelu4(self.conv4(x))
+
+        x = x.view(x.shape(0), -1)
+        x = self.prelu5(self.fc(x))
+        
