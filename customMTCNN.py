@@ -54,3 +54,12 @@ class RNet(nn.module):
     """Refinement Network (R-Net) - Second stage of MTCNN"""
     def __init__(self):
         super(RNet, self).__init__()
+
+        #Feature extraction
+        self.conv1 = nn.Conv2d(3, 28, kernel_size=3, stride=1)
+        self.prelu1 = nn.PReLU(28)
+        self.pool1 = nn.MaxPool2d(kernel_size=3, stride=2)
+
+        self.conv2 = nn.Conv2d(28, 48, kernel_size=3, stride=1)
+        self.prelu2 = nn.PReLU(48)
+        self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2)
