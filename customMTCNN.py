@@ -90,4 +90,11 @@ class RNet(nn.module):
 
         x = x.view(x.size(0), -1)
         x = self.prelu4(self.fc(x))
+
+        det = self.fc_1(x)
+        det = self.softmax5_1(det)
         
+        box = self.fc_2(x)
+        landmark = self.fc_3(x)
+        
+        return det, box, landmark
