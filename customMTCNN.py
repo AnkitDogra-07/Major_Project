@@ -145,4 +145,11 @@ class ONet(nn.module):
 
         x = x.view(x.shape(0), -1)
         x = self.prelu5(self.fc(x))
-        
+
+        det = self.fc_1(x)
+        det = self.softmax6_1(det)
+
+        box = self.fc_2(x)
+        landmark = self.fc_3(x)
+
+        return det, box, landmark
