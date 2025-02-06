@@ -80,3 +80,14 @@ class RNet(nn.module):
         
         # Landmark regression
         self.fc_3 = nn.Linear(128, 10)
+    
+    def forward(self, x):
+        x = self.prelu1(self.conv1(x))
+        x = self.pool1(x)
+        x = self.prelu2(self.conv2(x))
+        x = self.pool2(x)
+        x = self.prelu3(self.conv3(x))
+
+        x = x.view(x.size(0), -1)
+        x = self.prelu4(self.fc(x))
+        
