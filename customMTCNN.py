@@ -98,3 +98,8 @@ class RNet(nn.module):
         landmark = self.fc_3(x)
         
         return det, box, landmark
+
+class ONet(nn.module):
+    """Output Network (O-Net) - Third stage of MTCNN"""
+    def __init__(self):
+        super(ONet, self).__init__()
