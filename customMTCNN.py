@@ -4,9 +4,8 @@ import torch.nn.functional as F
 import numpy as np
 from torchvision import transforms
 from typing import Tuple, List
-from customMTCNN import CustomMTCNN
 
-class PNet(nn.module):
+class PNet(nn.Module):
     """Proposal Network (P-Net) - First stage of MTCNN"""
     def __init__(self):
         super(PNet, self).__init__()
@@ -50,7 +49,7 @@ class PNet(nn.module):
         
         return det, box, landmark
 
-class RNet(nn.module):
+class RNet(nn.Module):
     """Refinement Network (R-Net) - Second stage of MTCNN"""
     def __init__(self):
         super(RNet, self).__init__()
@@ -99,7 +98,7 @@ class RNet(nn.module):
         
         return det, box, landmark
 
-class ONet(nn.module):
+class ONet(nn.Module):
     """Output Network (O-Net) - Third stage of MTCNN"""
     def __init__(self):
         super(ONet, self).__init__()
@@ -153,3 +152,6 @@ class ONet(nn.module):
         landmark = self.fc_3(x)
 
         return det, box, landmark
+
+class CustomMTCNN(nn.Module):
+    """Custom MTCNN implementation"""
