@@ -11,7 +11,7 @@ class PNet(nn.module):
     def __init__(self):
         super(PNet, self).__init__()
 
-        #Feature Extraction Layer
+        #Feature extraction layer
         self.conv1 = nn.Conv2d(3, 10, kernel_size=3, stride=1)
         self.prelu1 = nn.PReLU(10)
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -22,7 +22,7 @@ class PNet(nn.module):
         self.conv3 = nn.Conv2d(16, 32, kernel_size=3, stride=1)
         self.prelu3 = nn.PReLU(32)
 
-        #Detection Branch
+        #Detection branch
         self.conv4_1 = nn.Conv2d(32, 2, kernel_size=1, stride=1)
         self.softmax4_1 = nn.Softmax(dim=1)
 
@@ -103,3 +103,25 @@ class ONet(nn.module):
     """Output Network (O-Net) - Third stage of MTCNN"""
     def __init__(self):
         super(ONet, self).__init__()
+
+        #Feature extraction
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1)
+        self.prelu1 = nn.PReLU(32)
+        self.pool1 = nn.MaxPool2d(kernel_size=3, stride=2)
+
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1)
+        self.prelu2 = nn.PReLU(64)
+        self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2)
+
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
+        self.prelu3 = nn.PReLU(64)
+        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=2, stride=1)
+        self.prelu4 = nn.PReLU(128)
+
+        #Fully connected layer
+        self.fc = nn.Linear(128 * 2 * 2, 256)
+        self.prelu5 = nn.PReLU(256)
+
+        
