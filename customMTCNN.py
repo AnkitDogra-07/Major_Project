@@ -63,3 +63,20 @@ class RNet(nn.module):
         self.conv2 = nn.Conv2d(28, 48, kernel_size=3, stride=1)
         self.prelu2 = nn.PReLU(48)
         self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2)
+
+        self.conv3 = nn.Conv2d(48, 64, kernel_size=3, stride=1)
+        self.prelu3 = nn.PReLU(64)
+
+        #Fully connected layers
+        self.fc = nn.Linear(64 * 2 * 2, 128)
+        self.prelu4 = nn.PReLU(128)
+
+        #Detection
+        self.fc_1 = nn.Linear(128, 2)
+        self.softmax5_1 = nn.Softmax(dim=1)
+
+        # Bounding box regression
+        self.fc_2 = nn.Linear(128, 4)
+        
+        # Landmark regression
+        self.fc_3 = nn.Linear(128, 10)
