@@ -165,3 +165,18 @@ class CustomMTCNN(nn.Module):
         self.min_face_size = 20.0
         self.scale_factor = 0.709
         self.thresholds = [0.6, 0.7, 0.7]  # P-Net, R-Net, O-Net thresholds
+    
+    def create_image_pyramid(self, img: torch.Tensor) -> List[torch.Tensor]:
+        """Create image pyramid for multi-scale detection"""
+        height, width = img.shape[2:]
+        min_length = min(height, width)
+        
+        scales = []
+        m = 12.0 / self.min_face_size
+        min_length *= m
+        factor_count = 0
+        
+        while min_length > 12.0:
+            scales.append(m * self.scale_factor ** factor_count)
+            min_length *= self.scale_factor
+            factor_count += 1
