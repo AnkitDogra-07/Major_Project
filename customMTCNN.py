@@ -139,7 +139,7 @@ class ONet(nn.Module):
         x = self.prelu2(self.conv2(x))
         x = self.pool2(x)
         x = self.prelu3(self.conv3(x))
-        x = self.pool13(x)
+        x = self.pool3(x)
         x = self.prelu4(self.conv4(x))
 
         x = x.view(x.shape(0), -1)
