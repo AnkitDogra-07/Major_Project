@@ -180,3 +180,4 @@ class CustomMTCNN(nn.Module):
             scales.append(m * self.scale_factor ** factor_count)
             min_length *= self.scale_factor
             factor_count += 1
+        return [F.interpolate(img, scale_factor=s, mode='bilinear', align_corners=True)for s in scales]
