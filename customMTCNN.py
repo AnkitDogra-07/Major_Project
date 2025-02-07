@@ -161,3 +161,7 @@ class CustomMTCNN(nn.Module):
         self.pnet = PNet()
         self.rnet = RNet()
         self.onet = ONet()
+
+        self.min_face_size = 20.0
+        self.scale_factor = 0.709
+        self.thresholds = [0.6, 0.7, 0.7]  # P-Net, R-Net, O-Net thresholds
