@@ -155,3 +155,9 @@ class ONet(nn.Module):
 
 class CustomMTCNN(nn.Module):
     """Custom MTCNN implementation"""
+    def __init__(self):
+        super(CustomMTCNN, self).__init__()
+
+        self.pnet = PNet()
+        self.rnet = RNet()
+        self.onet = ONet()
