@@ -181,3 +181,8 @@ class CustomMTCNN(nn.Module):
             min_length *= self.scale_factor
             factor_count += 1
         return [F.interpolate(img, scale_factor=s, mode='bilinear', align_corners=True)for s in scales]
+    
+    def generate_bounding_boxes(self, det: torch.Tensor, box: torch.Tensor, scale: float, threshold: float) -> np.ndarray:
+        """Generate bounding boxes from network outputs"""
+        det = det.data.cpu().numpy()
+        box = box.data.cpu().numpy()
