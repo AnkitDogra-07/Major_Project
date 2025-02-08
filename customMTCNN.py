@@ -205,3 +205,107 @@ class CustomMTCNN(nn.Module):
         ]).T
 
         return box
+
+    def nms(self, boxes: np.ndarray, threshold: float, method: str = 'union') -> List[int]:
+        """Non-maximum suppression"""
+        if len(boxes) == 0:
+            return []
+            
+        x1 = boxes[:, 0]
+        y1 = boxes[:, 1]
+        x2 = boxes[:, 2]
+        y2 = boxes[:, 3]
+        scores = boxes[:, 4]
+        
+        area = (x2 - x1 + 1) * (y2 - y1 + 1)
+        indices = np.argsort(scores)[::-1]
+        
+        keep = []
+        while len(indices) > 0:
+            i = indices[0]
+            keep.append(i)
+            
+            xx1 = np.maximum(x1[i], x1[indices[1:]])
+            yy1 = np.maximum(y1[i], y1[indices[1:]])
+            xx2 = np.minimum(x2[i], x2[indices[1:]])
+            yy2 = np.minimum(y2[i], y2[indices[1:]])
+            
+            w = np.maximum(0.0, xx2 - xx1 + 1)
+            h = np.maximum(0.0, yy2 - yy1 + 1)
+            
+            inter = w * h
+            if method == 'min':
+                overlap = inter / np.minimum(area[i], area[indices[1:]])
+            else:
+                overlap = inter / (area[i] + area[indices[1:]] - inter)
+                
+            indices = indices[1:][overlap <= threshold]
+            
+        return keep
+
+    def detect(self, img: torch.Tensor) -> Tuple[np.ndarray, np.ndarray]:
+        """Detect faces in the input image"""
+        # Stage 1: P-Net
+        total_boxes = []
+        img_pyramid = self.create_image_pyramid(img)
+
+        for scaled_img in img_pyramid:
+            det, box, _ = self.pnet(scaled_img)
+            boxes = self.generate_bounding_boxes(det, box, 
+                                              scaled_img.shape[2]/img.shape[2],
+                                              self.thresholds[0])
+            if len(boxes) > 0:
+                total_boxes.extend(boxes)
+
+        if len(total_boxes) == 0:
+            return np.array([]), np.array([])
+
+        total_boxes = np.vstack(total_boxes)
+        keep = self.nms(total_boxes, 0.7)
+        total_boxes = total_boxes[keep]
+
+        # Stage 2: R-Net
+        img_boxes = [self.extract_face(img, box) for box in total_boxes]
+        img_boxes = torch.stack(img_boxes)
+
+        det, box, _ = self.rnet(img_boxes)
+        det = det.data.cpu().numpy()
+        box = box.data.cpu().numpy()
+
+        keep = np.where(det[:, 1] > self.thresholds[1])[0]
+        total_boxes = total_boxes[keep]
+        total_boxes[:, 4] = det[keep, 1]
+        total_boxes[:, 5:] = box[keep]
+
+        keep = self.nms(total_boxes, 0.7)
+        total_boxes = total_boxes[keep]
+
+        # Stage 3: O-Net
+        img_boxes = [self.extract_face(img, box) for box in total_boxes]
+        img_boxes = torch.stack(img_boxes)
+
+        det, box, landmark = self.onet(img_boxes)
+        det = det.data.cpu().numpy()
+        box = box.data.cpu().numpy()
+        landmark = landmark.data.cpu().numpy()
+
+        keep = np.where(det[:, 1] > self.thresholds[2])[0]
+        total_boxes = total_boxes[keep]
+        total_boxes[:, 4] = det[keep, 1]
+        total_boxes[:, 5:] = box[keep]
+        landmarks = landmark[keep]
+
+        return total_boxes, landmarks
+
+    def extract_face(self, img: torch.Tensor, box: np.ndarray) -> torch.Tensor:
+        """Extract face region from image based on bounding box"""
+        x1, y1, x2, y2 = [int(i) for i in box[:4]]
+        face = img[:, :, y1:y2, x1:x2]
+        return F.interpolate(face, size=(24, 24), mode='bilinear', align_corners=True)
+
+def load_model(model_path: str) -> CustomMTCNN:
+    """Load trained model"""
+    model = CustomMTCNN()
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    return model
