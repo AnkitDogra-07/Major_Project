@@ -186,3 +186,20 @@ class CustomMTCNN(nn.Module):
         """Generate bounding boxes from network outputs"""
         det = det.data.cpu().numpy()
         box = box.data.cpu().numpy()
+
+        stride = 2
+        cell_size = 12
+
+        indicate = np.where(det[:, 1] > threshold)
+
+        if len(indices[0]) == 0:
+            return np.array([])
+        
+        boxes = np.vstack([
+            np.round((stride * indices[1] + 1) / scale),
+            np.round((stride * indices[0] + 1) / scale),
+            np.round((stride * indices[1] + cell_size) / scale),
+            np.round((stride * indices[0] + cell_size) / scale),
+            det[indices[0], indices[1]][:,np.newaxis],
+            box[indices]
+        ])
