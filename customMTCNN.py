@@ -202,4 +202,6 @@ class CustomMTCNN(nn.Module):
             np.round((stride * indices[0] + cell_size) / scale),
             det[indices[0], indices[1]][:,np.newaxis],
             box[indices]
-        ])
+        ]).T
+
+        return box
