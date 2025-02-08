@@ -1,29 +1,24 @@
-import wandb
-import random
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from customMTCNN import CustomMTCNN
+from mtcnn_train import MTCNNTrainer, config, MTCNNLoss
+# Initialize model and trainer
+model = CustomMTCNN()
+trainer = MTCNNTrainer(model, config)
 
-# start a new wandb run to track this script
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="my-awesome-project",
+# Create dataloaders using the previous dataset code
+train_loaders = {
+    'pnet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'pnet', 'train'),
+    'rnet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'rnet', 'train'),
+    'onet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'onet', 'train')
+}
 
-    # track hyperparameters and run metadata
-    config={
-    "learning_rate": 0.02,
-    "architecture": "CNN",
-    "dataset": "CIFAR-100",
-    "epochs": 10,
-    }
-)
+val_loaders = {
+    'pnet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'pnet', 'val'),
+    'rnet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'rnet', 'val'),
+    'onet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'onet', 'val')
+}
 
-# simulate training
-epochs = 10
-offset = random.random() / 5
-for epoch in range(2, epochs):
-    acc = 1 - 2 ** -epoch - random.random() / epoch - offset
-    loss = 2 ** -epoch + random.random() / epoch + offset
-
-    # log metrics to wandb
-    wandb.log({"acc": acc, "loss": loss})
-
-# [optional] finish the wandb run, necessary in notebooks
-wandb.finish()
+# Start training
+trainer.train(train_loaders, val_loaders)

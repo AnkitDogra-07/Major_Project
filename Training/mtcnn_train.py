@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from typing import Dict, List, Tuple
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from tqdm import tqdm
 import logging
 import wandb # For experiment tracking
