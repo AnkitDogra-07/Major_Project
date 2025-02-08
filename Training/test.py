@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from customMTCNN import CustomMTCNN
-from mtcnn_train import MTCNNTrainer, config, MTCNNLoss
+from mtcnn_train import MTCNNTrainer, config
 # Initialize model and trainer
 model = CustomMTCNN()
 trainer = MTCNNTrainer(model, config)
