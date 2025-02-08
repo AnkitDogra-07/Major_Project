@@ -4,9 +4,12 @@ from torch.utils.data import DataLoader, ConcatDataset
 import torch.nn.functional as F
 from typing import Dict, List, Tuple
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from tqdm import tqdm
 import logging
-import wandb  # For experiment tracking
+import wandb # For experiment tracking
+from customMTCNN import CustomMTCNN
 
 class MTCNNTrainer:
     def __init__(self, model: CustomMTCNN, config: Dict, device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
