@@ -9,6 +9,7 @@ from tqdm import tqdm
 import logging
 import wandb # For experiment tracking
 from customMTCNN import CustomMTCNN
+from mtcnn_loss import MTCNNLoss
 
 class MTCNNTrainer:
     def __init__(self, model: CustomMTCNN, config: Dict, device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
