@@ -77,6 +77,7 @@ class MTCNNTrainer:
         )
         
         self.optimizers[net_type].step()
+        print("Training Complete...")
         
         return {k: v.item() for k, v in losses.items()}
     
