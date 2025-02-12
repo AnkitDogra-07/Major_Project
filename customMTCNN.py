@@ -190,7 +190,7 @@ class CustomMTCNN(nn.Module):
         stride = 2
         cell_size = 12
 
-        indicate = np.where(det[:, 1] > threshold)
+        indices = np.where(det[:, 1] > threshold)
 
         if len(indices[0]) == 0:
             return np.array([])
