@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class MTCNNLoss(nn.Module):
-
     def __init__(self, det_weight: float = 1.0, 
                  box_weight: float = 0.5, 
                  landmark_weight: float = 0.5):
@@ -13,13 +12,7 @@ class MTCNNLoss(nn.Module):
         self.box_weight = box_weight
         self.landmark_weight = landmark_weight
     
-    def forward(self, 
-                det_pred: torch.Tensor, 
-                box_pred: torch.Tensor, 
-                landmark_pred: torch.Tensor,
-                det_target: torch.Tensor, 
-                box_target: torch.Tensor, 
-                landmark_target: torch.Tensor) -> dict:
+    def forward(self, det_pred: torch.Tensor, box_pred: torch.Tensor, landmark_pred: torch.Tensor,det_target: torch.Tensor, box_target: torch.Tensor, landmark_target: torch.Tensor) -> dict:
 
         # Detection loss (cross-entropy)
         det_loss = F.cross_entropy(det_pred, det_target) * self.det_weight
