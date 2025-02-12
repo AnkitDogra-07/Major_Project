@@ -3,21 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class MTCNNLoss(nn.Module):
-    """
-    Custom loss function for MTCNN with separate weightings for 
-    detection, bounding box, and landmark losses
-    """
+
     def __init__(self, det_weight: float = 1.0, 
                  box_weight: float = 0.5, 
                  landmark_weight: float = 0.5):
-        """
-        Initialize loss components with configurable weights
-        
-        Args:
-            det_weight (float): Weight for detection loss
-            box_weight (float): Weight for bounding box regression loss
-            landmark_weight (float): Weight for landmark localization loss
-        """
+
         super(MTCNNLoss, self).__init__()
         self.det_weight = det_weight
         self.box_weight = box_weight
@@ -30,20 +20,7 @@ class MTCNNLoss(nn.Module):
                 det_target: torch.Tensor, 
                 box_target: torch.Tensor, 
                 landmark_target: torch.Tensor) -> dict:
-        """
-        Compute combined loss for MTCNN
-        
-        Args:
-            det_pred (torch.Tensor): Predicted detection probabilities
-            box_pred (torch.Tensor): Predicted bounding box coordinates
-            landmark_pred (torch.Tensor): Predicted landmark coordinates
-            det_target (torch.Tensor): Ground truth detection labels
-            box_target (torch.Tensor): Ground truth bounding box coordinates
-            landmark_target (torch.Tensor): Ground truth landmark coordinates
-        
-        Returns:
-            dict: Dictionary of individual and total losses
-        """
+
         # Detection loss (cross-entropy)
         det_loss = F.cross_entropy(det_pred, det_target) * self.det_weight
         
