@@ -19,6 +19,5 @@ val_loaders = {
     'rnet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'rnet', 'val'),
     'onet': create_dataloader(WIDERFaceDataset(...), CelebADataset(...), 'onet', 'val')
 }
-
 # Start training
 trainer.train(train_loaders, val_loaders)
