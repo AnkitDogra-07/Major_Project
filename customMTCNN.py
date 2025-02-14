@@ -203,7 +203,6 @@ class CustomMTCNN(nn.Module):
             det[indices[0], indices[1]][:,np.newaxis],
             box[indices]
         ]).T
-
         return box
 
     def nms(self, boxes: np.ndarray, threshold: float, method: str = 'union') -> List[int]:
