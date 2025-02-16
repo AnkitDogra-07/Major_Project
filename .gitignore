@@ -2,3 +2,4 @@ major_project
 /wandb
 /dataset
 /base
+/face_embedding
