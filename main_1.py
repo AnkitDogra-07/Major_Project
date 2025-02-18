@@ -73,7 +73,7 @@ def update_person_identity(face_img):
         avg_similarity = np.dot(embedding, avg_embedding) / (
             np.linalg.norm(embedding) * np.linalg.norm(avg_embedding)
         )
-        if avg_embedding > 0.85:
+        if avg_similarity > 0.85:
             embedding_buffer[best_match].append(embedding)
             if len(embedding_buffer[best_match]) > 5:
                 embedding_buffer[best_match].pop(0)
