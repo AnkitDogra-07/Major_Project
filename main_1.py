@@ -73,9 +73,9 @@ def update_person_identity(face_img):
         avg_similarity = np.dot(embedding, avg_embedding) / (
             np.linalg.norm(embedding) * np.linalg.norm(avg_embedding)
         )
-        if avg_similarity > 0.85:
+        if avg_similarity > 0.80:
             embedding_buffer[best_match].append(embedding)
-            if len(embedding_buffer[best_match]) > 5:
+            if len(embedding_buffer[best_match]) > 10:
                 embedding_buffer[best_match].pop(0)
             return best_match, similarity
 
@@ -99,9 +99,10 @@ while True:
 
     frame_count += 1
     display_frame = frame.copy()
+    detection_interval = max(5, 20 - len(trackers))
 
     # Run detection every 10 frames or if no active trackers
-    if frame_count % 10 == 0 or len(trackers) == 0:
+    if frame_count % detection_interval == 0 or len(trackers) == 0:
         faces = detector.detect_faces(frame)
         trackers = {}  # Reset trackers
 
@@ -117,7 +118,7 @@ while True:
                     person_id, similarity = update_person_identity(face_img)
 
                     if person_id:
-                        tracker = cv2.legacy.TrackerCSRT_create()
+                        tracker = cv2.TrackerKCF_create()
                         tracker.init(frame, (x, y, w, h))
                         trackers[person_id] = tracker
 
