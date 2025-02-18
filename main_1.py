@@ -68,13 +68,16 @@ def update_person_identity(face_img):
 
     best_match, similarity = find_best_match(embedding, known_embeddings)
 
-    if best_match:
-        if best_match not in embedding_buffer:
-            embedding_buffer[best_match] = []
-        embedding_buffer[best_match].append(embedding)
-        if len(embedding_buffer[best_match]) > 5:
-            embedding_buffer[best_match].pop(0)
-        return best_match, similarity
+    if best_match and best_match in embedding_buffer:
+        avg_embedding = np.mean(embedding_buffer[best_match], axis=0)
+        avg_similarity = np.dot(embedding, avg_embedding) / (
+            np.linalg.norm(embedding) * np.linalg.norm(avg_embedding)
+        )
+        if avg_embedding > 0.85:
+            embedding_buffer[best_match].append(embedding)
+            if len(embedding_buffer[best_match]) > 5:
+                embedding_buffer[best_match].pop(0)
+            return best_match, similarity
 
     # Assign new ID if no match
     new_id = f"Person_{next_id}"
