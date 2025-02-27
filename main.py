@@ -11,6 +11,7 @@ from Essentials.embed import Embed
 # # Initialize variables
 output_dir = 'face_embedding'
 sub_dir = 'inp_embedding'
+detector = MTCNN()
 os.makedirs(os.path.join(output_dir, sub_dir), exist_ok=True)
 Embed = Embed()
 known_embeddings = {}  # Store embeddings
@@ -35,7 +36,7 @@ while True:
 
     # Run detection every 10 frames or if no active trackers
     if frame_count % detection_interval == 0 or len(trackers) == 0:
-        faces = Embed.detector.detect_faces(frame)
+        faces = detector.detect_faces(frame)
         trackers = {}  # Reset trackers
 
         if faces:
@@ -47,7 +48,7 @@ while True:
 
                 if w > 0 and h > 0:
                     face_img = frame[y:y+h, x:x+w]
-                    person_id, similarity = Embed.update_person_identity(face_img)
+                    person_id, similarity = Embed.update_person_identity(face_img, known_embeddings, embedding_buffer, next_id)
 
                     if person_id:
                         tracker = cv2.TrackerKCF_create()

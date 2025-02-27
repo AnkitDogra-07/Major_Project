@@ -7,6 +7,9 @@ import datetime
 
 class Embed:
     def __init__(self, output_dir='face_embedding', sub_dir='inp_embedding'):
+        self.output_dir = 'face_embedding'
+        self.sub_dir = 'inp_embedding'
+        os.makedirs(os.path.join(self.output_dir, self.sub_dir), exist_ok=True)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.facenet = InceptionResnetV1(pretrained='vggface2').to(self.device).eval()
     
