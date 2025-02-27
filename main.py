@@ -48,10 +48,10 @@ while True:
 
                 if w > 0 and h > 0:
                     face_img = frame[y:y+h, x:x+w]
-                    person_id, similarity = Embed.update_person_identity(face_img, known_embeddings, embedding_buffer, next_id)
+                    best_match, similarity, person_id = Embed.update_person_identity(face_img, known_embeddings, embedding_buffer, next_id)
 
                     if person_id:
-                        tracker = cv2.TrackerKCF_create()
+                        tracker = cv2.TrackerKCF.create()
                         tracker.init(frame, (x, y, w, h))
                         trackers[person_id] = tracker
 
