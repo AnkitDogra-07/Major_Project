@@ -13,14 +13,14 @@ output_dir = 'face_embedding'
 sub_dir = 'inp_embedding'
 detector = MTCNN()
 os.makedirs(os.path.join(output_dir, sub_dir), exist_ok=True)
-Embed = Embed()
+Emb = Embed()
 known_embeddings = {}  # Store embeddings
 embedding_buffer = {}  # Store recent embeddings for tracked faces
 trackers = {}  # Store multiple trackers {id: tracker}
 next_id = 1  # Unique ID for each new face
 frame_count = 0
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)   
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 cv2.namedWindow('Multi-Face Tracking')
@@ -48,7 +48,7 @@ while True:
 
                 if w > 0 and h > 0:
                     face_img = frame[y:y+h, x:x+w]
-                    best_match, similarity, person_id = Embed.update_person_identity(face_img, known_embeddings, embedding_buffer, next_id)
+                    best_match, similarity, person_id = Emb.update_person_identity(face_img, known_embeddings, embedding_buffer, next_id)
 
                     if person_id:
                         tracker = cv2.TrackerKCF.create()
