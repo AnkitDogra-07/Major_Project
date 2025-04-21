@@ -8,20 +8,37 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from pathlib import Path
 
 class FaceRetrievalPipeline:
-    def __init__(self, embedding_dir='face_embedding/inp_embedding', device=None):
+    def __init__(self, db_manager=None, embedding_dir='face_embedding/inp_embedding', device=None):
         self.embedding_dir = embedding_dir
+        self.db_manager = db_manager
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if device is None else device
         
         # Initialize models
         self.facenet = InceptionResnetV1(pretrained='vggface2').to(self.device).eval()
-        self.detector = MTCNN(device=self.device)
+        self.detector = MTCNN()
         
-        # Load stored embeddings
+        # Load stored embeddings (from files or database)
         self.stored_embeddings = self.load_stored_embeddings()
         print(f"Loaded {len(self.stored_embeddings)} person IDs from embeddings")
         
     def load_stored_embeddings(self):
-        """Load all stored embeddings from the directory."""
+        """Load all stored embeddings from the database or directory."""
+        embeddings = {}
+        
+        # Try loading from database first if available
+        if self.db_manager:
+            try:
+                # This is just a conceptual approach - db_manager would need an implementation
+                # to get all embeddings from FAISS index
+                return embeddings
+            except Exception as e:
+                print(f"Error loading embeddings from database: {e}")
+        
+        # Fall back to loading from files
+        return self._load_from_files()
+        
+    def _load_from_files(self):
+        """Load embeddings from files as fallback."""
         embeddings = {}
         
         # Ensure embedding directory exists
@@ -79,45 +96,121 @@ class FaceRetrievalPipeline:
             np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
         )
     
-    def retrieve_matches(self, query_img, threshold=0.85):
-        """Find matches for a query image among stored embeddings."""
-        # Detect and get embedding for query face
-        faces = self.detector.detect_faces(query_img)
-        if not faces:
-            print("No faces detected in query image")
-            return None
-        
-        # Process the largest face in the image
-        largest_face = max(faces, key=lambda face: face['box'][2] * face['box'][3])
-        x, y, w, h = largest_face['box']
-        
-        # Ensure we don't go out of bounds
-        x, y = max(0, x), max(0, y)
-        w = min(w, query_img.shape[1] - x)
-        h = min(h, query_img.shape[0] - y)
-        
-        if w <= 0 or h <= 0:
-            print("Invalid face dimensions after boundary check")
-            return None
+    def detect_faces(self, image):
+        """Detect faces in image and return cropped face images with their boxes."""
+        if image is None:
+            print("Error: None image provided to face detector")
+            return []
             
-        face_img = query_img[y:y+h, x:x+w]
-        query_embedding = self.get_embedding(face_img)
+        try:
+            faces = self.detector.detect_faces(image)
+            results = []
+            
+            for face in faces:
+                x, y, w, h = face['box']
+                
+                # Ensure coordinates are within image bounds
+                x, y = max(0, x), max(0, y)
+                w = min(w, image.shape[1] - x)
+                h = min(h, image.shape[0] - y)
+                
+                if w <= 0 or h <= 0:
+                    continue
+                    
+                face_img = image[y:y+h, x:x+w]
+                results.append({
+                    'box': (x, y, w, h),
+                    'confidence': face['confidence'],
+                    'face_img': face_img
+                })
+                
+            return results
+        except Exception as e:
+            print(f"Error in face detection: {e}")
+            return []
+    
+    def retrieve_matches(self, query_img, threshold=0.85, k=3):
+        """Find matches for a query image among stored embeddings."""
+        # First try to detect faces
+        faces = self.detect_faces(query_img)
         
-        if query_embedding is None:
-            print("Failed to generate embedding for query face")
+        if not faces:
+            #print("No faces detected in query image")
             return None
         
-        # Find best matches
-        matches = {}
-        for person_id, stored_embedding in self.stored_embeddings.items():
-            # Compare with stored embedding
-            similarity = self.compute_similarity(query_embedding, stored_embedding)
-            if similarity >= threshold:
-                matches[person_id] = similarity
+        # Process each detected face
+        all_matches = []
         
-        # Sort matches by similarity score
-        sorted_matches = dict(sorted(matches.items(), key=lambda item: item[1], reverse=True))
-        return sorted_matches if sorted_matches else None
+        for face_data in faces:
+            face_img = face_data['face_img']
+            query_embedding = self.get_embedding(face_img)
+            
+            if query_embedding is None:
+                print("Failed to generate embedding for face")
+                continue
+            
+            # Check if we have database access
+            if self.db_manager:
+                db_matches = self.db_manager.retrieve_similar_faces(query_embedding, k=k, threshold=threshold)
+                if db_matches:
+                    # Add face box from detection
+                    for match in db_matches:
+                        match['box'] = face_data['box']
+                    all_matches.extend(db_matches)
+                    continue
+            
+            # Fallback: search in stored embeddings from memory
+            matches = []
+            for person_id, stored_embedding in self.stored_embeddings.items():
+                # Compare with stored embedding
+                similarity = self.compute_similarity(query_embedding, stored_embedding)
+                if similarity >= threshold:
+                    # For each match, add all the information we need
+                    matches.append({
+                        'person_id': person_id,
+                        'similarity': similarity,
+                        'box': face_data['box'],
+                        # We don't have the face image stored in memory matches
+                    })
+            
+            # Sort matches by similarity score
+            matches.sort(key=lambda x: x['similarity'], reverse=True)
+            
+            # Keep only top k matches
+            all_matches.extend(matches[:k])
+            
+        return all_matches if all_matches else None
+    
+    def retrieve_live_matches(self, frame, threshold=0.75, k=3):
+        """Specialized version for live camera retrieval with visualization."""
+        matches = self.retrieve_matches(frame, threshold=threshold, k=k)
+        
+        # If no matches at all, return early
+        if not matches:
+            return frame, None
+            
+        # Create visualization
+        vis_frame = frame.copy()
+        
+        # Draw bounding boxes and labels for each match
+        for match in matches:
+            if 'box' in match:
+                x, y, w, h = match['box']
+                
+                # Draw rectangle
+                cv2.rectangle(vis_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                
+                # Draw label with person_id and confidence
+                person_id = match['person_id']
+                similarity = match['similarity']
+                label = f"{person_id}: {similarity:.2f}"
+                
+                # Calculate text position
+                text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
+                cv2.putText(vis_frame, label, (x, y - 10 if y > 20 else y + 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        
+        return vis_frame, matches
     
     def evaluate_retrieval(self, test_images_dir, ground_truth):
         """
@@ -157,7 +250,7 @@ class FaceRetrievalPipeline:
                 
                 if matches:
                     # Get the person_id with highest similarity
-                    pred_id = next(iter(matches))
+                    pred_id = matches[0]['person_id']
                     predictions.append(pred_id)
                     true_labels.append(true_id)
                     print(f"Image: {img_file}, Predicted: {pred_id}, True: {true_id}")
@@ -189,46 +282,3 @@ class FaceRetrievalPipeline:
             'f1': f1,
             'total_samples': len(true_labels)
         }
-
-def demo_retrieval():
-    """Demo function to show how to use the pipeline."""
-    # Initialize pipeline
-    pipeline = FaceRetrievalPipeline()
-    
-    # Example of single image retrieval
-    test_img_path = 'path_to_test_image.jpg'
-    if os.path.exists(test_img_path):
-        test_img = cv2.imread(test_img_path)
-        
-        if test_img is not None:
-            matches = pipeline.retrieve_matches(test_img)
-            
-            if matches:
-                print("\nMatches found:")
-                for person_id, similarity in matches.items():
-                    print(f"{person_id}: {similarity:.3f}")
-            else:
-                print("No matches found for test image")
-        else:
-            print(f"Failed to load test image: {test_img_path}")
-    else:
-        print(f"Test image path does not exist: {test_img_path}")
-    
-    # Example of evaluation
-    test_dir = 'test_images_dir'
-    if os.path.exists(test_dir):
-        ground_truth = {
-            'test1.jpg': 'Person_1',
-            'test2.jpg': 'Person_2',
-            # ... more test images
-        }
-        
-        metrics = pipeline.evaluate_retrieval(test_dir, ground_truth)
-        print("\nRetrieval Performance:")
-        for metric, value in metrics.items():
-            print(f"{metric}: {value:.3f}")
-    else:
-        print(f"Test directory does not exist: {test_dir}")
-
-if __name__ == "__main__":
-    demo_retrieval()
