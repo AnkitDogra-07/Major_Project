@@ -15,7 +15,7 @@ class DatabaseManager:
     def __init__(self, db_params=None, index_dir='face_indexes'):
         # Default PostgreSQL connection parameters
         self.db_params = db_params or {
-            'dbname': 'major_project',
+            'dbname': 'major_project_updated',
             'user': 'postgres',
             'password': 'root',
             'host': 'localhost',
